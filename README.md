@@ -1,281 +1,752 @@
-# google_login
-আমি তোমার জন্য **একটা প্রস্তুতকৃত `README.md` লিখে দিচ্ছি**, যেখানে থাকবে—
+# 🔐 Google Auth Template - Flutter + Firebase
 
-✔ Google OAuth Setup (Android + iOS)
-✔ Firebase Console setup
-✔ SHA-1/SHA-256
-✔ GoogleService-Info.plist
-✔ google-services.json
-✔ Flutter Configuration
-✔ Sign in Code (reusable in all projects)
-✔ নিরাপদ Token handling
-
-
-
-### **Step 1 — Firebase Console**
-
-👉 [https://console.firebase.google.com/](https://console.firebase.google.com/)
-
-* “Add project”
-* Project name দাও → Continue
-* Analytics off করতে পারো → Create
+এই template টি যেকোনো Flutter project এ copy-paste করে সহজেই Google Authentication implement করতে পারবেন।
 
 ---
 
-# ## 2️⃣ Android Setup
+## 📦 Part 1: Initial Setup (একবার করলেই হবে)
 
-### **Step 1 — SHA-1 & SHA-256 generate (required)**
+### Step 1: Firebase CLI & FlutterFire CLI Install
 
-#### macOS / Linux:
+```bash
+# Firebase CLI install
+npm install -g firebase-tools
 
-```sh
-./gradlew signingReport
+# অথবা macOS এ
+curl -sL https://firebase.tools | bash
+
+# Firebase login
+firebase login
+
+# FlutterFire CLI install
+dart pub global activate flutterfire_cli
+
+# Path add করুন (যদি না থাকে)
+export PATH="$PATH":"$HOME/.pub-cache/bin"
 ```
 
-SHA-1 & SHA-256 কপি রাখো।
+### Step 2: Firebase Project তৈরি করুন
 
-#### Windows:
+1. যান: https://console.firebase.google.com/
+2. **Add project** → Project name দিন (e.g., "MyApp Dev")
+3. Google Analytics enable করুন (optional)
+4. **Create project**
 
-```sh
-gradlew signingReport
-```
+### Step 3: Google Sign-In Enable করুন
+
+1. Firebase Console → **Authentication**
+2. **Get Started** → **Sign-in method**
+3. **Google** select → **Enable** → Support email দিন → **Save**
 
 ---
 
-### **Step 2 — Firebase এ Android App Add**
+## 🚀 Part 2: নতুন Project এ Setup (প্রতিবার)
 
-* Android package name:
-  **`com.yourcompany.yourapp`**
-* App nickname: optional
-* SHA-1 paste করো
-* SHA-256 paste করো
-* Download **google-services.json**
-* এটি রাখো:
+### Step 1: Flutter Project তৈরি করুন
 
-```
-android/app/google-services.json
+```bash
+flutter create my_new_app
+cd my_new_app
 ```
 
----
+### Step 2: Dependencies Add করুন
 
-### **Step 3 — android/build.gradle**
-
-```gradle
-buildscript {
-    dependencies {
-        classpath 'com.google.gms:google-services:4.4.2'
-    }
-}
-```
-
----
-
-### **Step 4 — android/app/build.gradle**
-
-```gradle
-apply plugin: 'com.google.gms.google-services'
-
-dependencies {
-    implementation 'com.google.android.gms:play-services-auth:20.7.0'
-}
-```
-
----
-
-### **Step 5 — Android Manifest**
-
-`android/app/src/main/AndroidManifest.xml` এ যোগ করো:
-
-```xml
-<meta-data
-    android:name="com.google.android.gms.games.APP_ID"
-    android:value="@string/app_id" />
-
-<meta-data
-    android:name="com.google.android.gms.version"
-    android:value="@integer/google_play_services_version" />
-```
-
----
-
-# ## 3️⃣ iOS Setup
-
-### **Step 1 — iOS App Add**
-
-Firebase Console → Add App → iOS নির্বাচন
-
-* iOS bundle ID:
-  **`com.yourcompany.yourapp`**
-
-### **Step 2 — GoogleService-Info.plist ডাউনলোড করো**
-
-এটি রাখো:
-
-```
-ios/Runner/GoogleService-Info.plist
-```
-
----
-
-### **Step 3 — iOS Pod Setup**
-
-`ios/Podfile` edit:
-
-```ruby
-platform :ios, '12.0'
-```
-
----
-
-### **Step 4 — Xcode Setup**
-
-Xcode → Runner →
-TARGETS → Runner →
-**Signing & Capabilities →+ Capability → Sign In with Apple + Keychain Sharing (optional)**
-
----
-
-### **Step 5 — URL Scheme Add**
-
-Xcode → Runner → Info → URL Types → +
-
-`REVERSED_CLIENT_ID` যোগ করো (plist এর ভেতরে থাকে)
-
----
-
-# ## 4️⃣ Flutter Dependencies
-
-`pubspec.yaml`:
+**pubspec.yaml** এ add করুন:
 
 ```yaml
 dependencies:
-  firebase_core: ^3.0.0
-  firebase_auth: ^5.0.0
-  google_sign_in: ^7.0.0
+  flutter:
+    sdk: flutter
+  
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
+  google_sign_in: ^6.2.1
+  
+  # Optional (recommended)
+  provider: ^6.1.1  # State management
 ```
 
-Install:
-
-```sh
+```bash
 flutter pub get
 ```
 
----
+### Step 3: Firebase Configure করুন
 
-# ## 5️⃣ Initialize Firebase
+```bash
+flutterfire configure
+```
 
-`main.dart`:
+**Select করুন:**
+- Firebase project (যেটা আগে তৈরি করেছেন)
+- Platforms: **Android**, **iOS** (Space দিয়ে select)
+- এটি automatically তৈরি করবে:
+  - ✅ `lib/firebase_options.dart`
+  - ✅ `android/app/google-services.json`
+  - ✅ `ios/Runner/GoogleService-Info.plist`
 
-```dart
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
-}
+### Step 4: SHA-1 Add করুন (Android)
+
+```bash
+# Debug SHA-1
+cd android
+./gradlew signingReport
+
+# Output থেকে SHA1 copy করুন
+```
+
+**Firebase Console এ add করুন:**
+1. Project Settings → Your apps → Android app
+2. **Add fingerprint** → SHA-1 paste → **Save**
+
+**⚠️ Release build এর জন্য আলাদা SHA-1 লাগবে!**
+
+### Step 5: iOS Configuration
+
+**ios/Runner/Info.plist** open করুন:
+
+1. `GoogleService-Info.plist` থেকে **REVERSED_CLIENT_ID** copy করুন
+2. `Info.plist` এ add করুন (শেষের `</dict>` এর আগে):
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <!-- GoogleService-Info.plist থেকে REVERSED_CLIENT_ID paste করুন -->
+            <string>com.googleusercontent.apps.YOUR-CLIENT-ID</string>
+        </array>
+    </dict>
+</array>
 ```
 
 ---
 
-# ## 6️⃣ Reusable Google Sign-In Service (Use in All Projects)
+## 📁 Part 3: Reusable Code Structure (Copy এই files গুলো)
 
-`lib/services/google_auth_service.dart`
+### File 1: `lib/services/auth_service.dart`
 
 ```dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class GoogleAuthService {
-  static final GoogleSignIn _googleSignIn = GoogleSignIn();
+class AuthService {
+  // Singleton pattern
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal();
 
-  static Future<User?> signIn() async {
-    final googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return null;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-    final googleAuth = await googleUser.authentication;
+  // Current user
+  User? get currentUser => _auth.currentUser;
 
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+  // Auth state stream
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-    final userCredential =
-        await FirebaseAuth.instance.signInWithCredential(credential);
+  // Check if user is signed in
+  bool get isSignedIn => _auth.currentUser != null;
 
-    return userCredential.user;
+  // Google Sign In
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      // Trigger Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        print('User cancelled Google Sign-In');
+        return null;
+      }
+
+      // Get auth details
+      final GoogleSignInAuthentication googleAuth = 
+          await googleUser.authentication;
+
+      // Create credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase
+      final userCredential = await _auth.signInWithCredential(credential);
+      
+      print('✅ Successfully signed in: ${userCredential.user?.email}');
+      return userCredential;
+      
+    } on FirebaseAuthException catch (e) {
+      print('❌ Firebase Auth Error: ${e.code} - ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('❌ Error signing in with Google: $e');
+      rethrow;
+    }
   }
 
-  static Future<void> signOut() async {
-    await FirebaseAuth.instance.signOut();
-    await _googleSignIn.signOut();
+  // Sign Out
+  Future<void> signOut() async {
+    try {
+      await Future.wait([
+        _auth.signOut(),
+        _googleSignIn.signOut(),
+      ]);
+      print('✅ Successfully signed out');
+    } catch (e) {
+      print('❌ Error signing out: $e');
+      rethrow;
+    }
+  }
+
+  // Delete account
+  Future<void> deleteAccount() async {
+    try {
+      await currentUser?.delete();
+      await _googleSignIn.signOut();
+      print('✅ Account deleted successfully');
+    } catch (e) {
+      print('❌ Error deleting account: $e');
+      rethrow;
+    }
+  }
+
+  // Get user token (for backend API calls)
+  Future<String?> getIdToken() async {
+    try {
+      return await currentUser?.getIdToken();
+    } catch (e) {
+      print('❌ Error getting ID token: $e');
+      return null;
+    }
+  }
+
+  // Refresh token
+  Future<String?> refreshToken() async {
+    try {
+      return await currentUser?.getIdToken(true);
+    } catch (e) {
+      print('❌ Error refreshing token: $e');
+      return null;
+    }
+  }
+}
+```
+
+### File 2: `lib/main.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/auth_gate.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Google Auth App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: AuthGate(),
+    );
+  }
+}
+```
+
+### File 3: `lib/screens/auth_gate.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
+import 'home_screen.dart';
+
+/// Auto-login checker
+class AuthGate extends StatelessWidget {
+  final AuthService _authService = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: _authService.authStateChanges,
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Check if user is signed in
+        if (snapshot.hasData && snapshot.data != null) {
+          return HomeScreen();
+        }
+
+        // Not signed in
+        return LoginScreen();
+      },
+    );
+  }
+}
+```
+
+### File 4: `lib/screens/login_screen.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+
+class LoginScreen extends StatefulWidget {
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await _authService.signInWithGoogle();
+
+      if (userCredential == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Sign-in cancelled')),
+          );
+        }
+      }
+      // AuthGate will automatically navigate to HomeScreen
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign-in failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.blue.shade400,
+              Colors.blue.shade800,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // App Icon/Logo
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.lock_outline,
+                  size: 60,
+                  color: Colors.blue.shade800,
+                ),
+              ),
+              SizedBox(height: 40),
+
+              // Title
+              Text(
+                'Welcome',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Sign in to continue',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white70,
+                ),
+              ),
+              SizedBox(height: 60),
+
+              // Google Sign-In Button
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 40),
+                child: _isLoading
+                    ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                    : ElevatedButton(
+                        onPressed: _handleGoogleSignIn,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 5,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/google_logo.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.g_mobiledata, size: 24);
+                              },
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Sign in with Google',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### File 5: `lib/screens/home_screen.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+
+class HomeScreen extends StatelessWidget {
+  final AuthService _authService = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    final user = _authService.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Home'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await _authService.signOut();
+              // AuthGate will automatically navigate to LoginScreen
+            },
+          ),
+        ],
+      ),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // User Photo
+              CircleAvatar(
+                radius: 60,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : null,
+                child: user?.photoURL == null
+                    ? Icon(Icons.person, size: 60)
+                    : null,
+              ),
+              SizedBox(height: 24),
+
+              // User Name
+              Text(
+                user?.displayName ?? 'No Name',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+
+              // User Email
+              Text(
+                user?.email ?? 'No Email',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 16),
+
+              // User ID (for debugging)
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'User ID',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      user?.uid ?? 'Unknown',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontFamily: 'monospace',
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 40),
+
+              // Sign Out Button
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await _authService.signOut();
+                },
+                icon: Icon(Icons.logout),
+                label: Text('Sign Out'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 ```
 
 ---
 
-# ## 7️⃣ Use in UI (Any Project)
+## 📂 Complete Project Structure
 
-```dart
-ElevatedButton(
-  onPressed: () async {
-    final user = await GoogleAuthService.signIn();
-    if (user != null) {
-      print("Name: ${user.displayName}");
-      print("Email: ${user.email}");
-      print("Photo: ${user.photoURL}");
-    }
-  },
-  child: Text("Continue with Google"),
-);
+```
+my_app/
+├── lib/
+│   ├── firebase_options.dart          # Auto-generated
+│   ├── main.dart                      # ✅ Copy
+│   ├── services/
+│   │   └── auth_service.dart          # ✅ Copy
+│   └── screens/
+│       ├── auth_gate.dart             # ✅ Copy
+│       ├── login_screen.dart          # ✅ Copy
+│       └── home_screen.dart           # ✅ Copy
+├── android/
+│   └── app/
+│       └── google-services.json       # Auto-generated
+├── ios/
+│   └── Runner/
+│       ├── GoogleService-Info.plist   # Auto-generated
+│       └── Info.plist                 # Manual edit
+├── pubspec.yaml                       # Update dependencies
+└── README.md
 ```
 
 ---
 
-# ## 8️⃣ Send Firebase Token to Backend
+## 🔄 নতুন Project এ এই Template Use করার Steps
 
-```dart
-final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+### Quick Checklist:
+
+```bash
+# 1. Flutter project তৈরি করুন
+flutter create my_new_project
+cd my_new_project
+
+# 2. pubspec.yaml update করুন (dependencies add করুন)
+
+# 3. Flutter packages install করুন
+flutter pub get
+
+# 4. FlutterFire configure করুন
+flutterfire configure
+
+# 5. SHA-1 generate এবং Firebase এ add করুন
+cd android && ./gradlew signingReport
+
+# 6. iOS Info.plist update করুন (URL Scheme add করুন)
+
+# 7. Reusable files copy করুন
+# - lib/services/auth_service.dart
+# - lib/screens/auth_gate.dart
+# - lib/screens/login_screen.dart
+# - lib/screens/home_screen.dart
+# - lib/main.dart update করুন
+
+# 8. Run করুন
+flutter run
 ```
 
-Backend receives:
+---
 
-* idToken → verify
-* create user if new
-* return JWT token
-* return user profile
+## 🎯 এক নজরে পুরো Process
+
+| Step | Command/Action | কতবার লাগবে |
+|------|---------------|-------------|
+| Firebase CLI install | `npm install -g firebase-tools` | **একবার (globally)** |
+| FlutterFire CLI install | `dart pub global activate flutterfire_cli` | **একবার (globally)** |
+| Firebase project create | Firebase Console এ | **প্রতি app এ একবার** |
+| Google Sign-In enable | Firebase Console → Authentication | **প্রতি Firebase project এ একবার** |
+| Flutter project create | `flutter create my_app` | **প্রতিবার** |
+| Dependencies add | pubspec.yaml edit | **প্রতিবার** |
+| Firebase configure | `flutterfire configure` | **প্রতিবার** |
+| SHA-1 add | `gradlew signingReport` → Firebase Console | **প্রতিবার (Debug + Release)** |
+| iOS Info.plist edit | Manual | **প্রতিবার** |
+| Reusable code copy | Copy করুন | **প্রতিবার** |
 
 ---
 
-# ## 9️⃣ Common Errors
+## 💡 Pro Tips
 
-| Error                               | Solution                    |
-| ----------------------------------- | --------------------------- |
-| SHA-1 mismatch                      | Firebase → Update SHA-1     |
-| iOS Google Sign-in not opening      | Add URL Scheme correctly    |
-| debug app works but release fails   | Add release SHA-1 & SHA-256 |
-| “PlatformException(sign_in_failed)” | Wrong client id             |
+### 1. Multiple Projects এর জন্য:
+
+**Development:**
+- Firebase Project: `myapp-dev`
+- Package: `com.example.myapp.dev`
+
+**Production:**
+- Firebase Project: `myapp-prod`
+- Package: `com.example.myapp`
+
+### 2. Template Repository তৈরি করুন:
+
+```bash
+# GitHub এ একটা template repo বানান
+git clone https://github.com/yourusername/flutter-google-auth-template
+cd flutter-google-auth-template
+
+# শুধু reusable code রাখুন, Firebase config রাখবেন না
+```
+
+### 3. Environment Variables (Advanced):
+
+```dart
+// lib/config/env.dart
+class Env {
+  static const String firebaseProjectId = String.fromEnvironment(
+    'FIREBASE_PROJECT_ID',
+    defaultValue: 'my-app-dev',
+  );
+}
+```
 
 ---
 
-# ## 🔥 Finished!
+## 🐛 Common Issues
 
-এখন তুমি যেকোনো Flutter Project এ Google Auth add করতে পারবে এই README.md দিয়ে।
+### Issue 1: "PlatformException(sign_in_failed)"
+**Fix:**
+```bash
+# SHA-1 re-generate করুন
+cd android && ./gradlew signingReport
+
+# Firebase Console এ add করুন
+# google-services.json re-download করুন
+flutterfire configure
+```
+
+### Issue 2: iOS build fails
+**Fix:**
+```bash
+cd ios
+pod install
+cd ..
+flutter clean
+flutter pub get
+```
+
+### Issue 3: "User not found" error
+**Fix:**
+- Firebase Console → Authentication → Users tab check করুন
+- Sign-in method Google enabled আছে কিনা check করুন
 
 ---
 
-# 👉 তুমি কি চাও আমি তোমার **Firebase Auth + Backend Token System** পুরা project-ready করে দিই?
+## 🔐 Security Checklist
 
+**❌ Git এ commit করবেন না:**
+```gitignore
+# .gitignore এ add করুন
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+*.keystore
+*.jks
+.env
+```
 
-## Getting Started
+**✅ করণীয়:**
+- Production আর Development আলাদা Firebase project
+- Release keystore secure জায়গায় রাখুন
+- API keys environment variables এ রাখুন
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 📚 Resources
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- [FlutterFire Docs](https://firebase.flutter.dev/)
+- [Google Sign-In Plugin](https://pub.dev/packages/google_sign_in)
+- [Firebase Auth](https://firebase.google.com/docs/auth)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# google_auth
+---
+
+এই template follow করলে **10-15 মিনিটে** যেকোনো নতুন Flutter project এ Google Authentication setup করতে পারবেন! 🚀
